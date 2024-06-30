@@ -1,0 +1,12 @@
+.box1 {
+  width: 200px;
+  height: 200px;
+  background-color: darkorange;
+  background-image: url(../image/applea.jpg);
+}
+
+.box1 .content1 {
+  width: 100px;
+  height: 100px;
+  background-color: red;
+}

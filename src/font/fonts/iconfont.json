@@ -1,0 +1,72 @@
+{
+  "id": "4568154",
+  "name": "cesium",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5806545",
+      "name": "坐标",
+      "font_class": "zuobiao",
+      "unicode": "e817",
+      "unicode_decimal": 59415
+    },
+    {
+      "icon_id": "7810704",
+      "name": "home",
+      "font_class": "home",
+      "unicode": "e657",
+      "unicode_decimal": 58967
+    },
+    {
+      "icon_id": "8832274",
+      "name": "坐标",
+      "font_class": "zuobiao1",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "8874081",
+      "name": "原点",
+      "font_class": "allocation-yuandian",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "11198111",
+      "name": "坐标3",
+      "font_class": "zuobiao2",
+      "unicode": "e661",
+      "unicode_decimal": 58977
+    },
+    {
+      "icon_id": "15491718",
+      "name": "坐标",
+      "font_class": "zuobiao4",
+      "unicode": "e6b3",
+      "unicode_decimal": 59059
+    },
+    {
+      "icon_id": "21129564",
+      "name": "home",
+      "font_class": "home1",
+      "unicode": "e63a",
+      "unicode_decimal": 58938
+    },
+    {
+      "icon_id": "29877048",
+      "name": "原点",
+      "font_class": "allocation-yuandian-copy",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "33365452",
+      "name": "坐标点1",
+      "font_class": "zuobiaodian1",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    }
+  ]
+}
