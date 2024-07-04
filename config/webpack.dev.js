@@ -1,9 +1,12 @@
+// 开发模式打包的文件
 const path = require("path");
 // eslint 插件
 // const ESLintPlugin = require('eslint-webpack-plugin')
 
 // 使用 Htmlwebpackplugin 插件自动引入js
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+// 将css 打包成为单独的css文件
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   // 入口
@@ -11,7 +14,8 @@ module.exports = {
   output: {
     // 输出路径
     // __dirname node.js的变量， 代表当前文件的文件夹目录
-    path: path.resolve(__dirname, "dist"), // 使用绝对路径
+    // 开发模式没有输出，可以不写
+    path: undefined, // 使用绝对路径
     // 输出的文件名称
     filename: "static/js/main.js",
     clean: true, // 每次打包都会清除上一次打包的内容
@@ -29,7 +33,8 @@ module.exports = {
 
         // use 可以使用多个loader
         use: [
-          "style-loader", // 将js中的css通过创建style标签添加到 html 文件中（动态创建style标签添加到html中，让css文件生效）
+          MiniCssExtractPlugin.loader, // 提取css成单独文件
+          // "style-loader", // 将js中的css通过创建style标签添加到 html 文件中（动态创建style标签添加到html中，让css文件生效）
           "css-loader", // 将css资源编译成为 commonjs 的模块到js中（将css打包到js中）
         ],
       },
@@ -38,8 +43,9 @@ module.exports = {
       {
         test: /\.less$/,
         use: [
+          MiniCssExtractPlugin.loader, // 提取css成单独文件
           // compiles Less to CSS
-          "style-loader",
+          // "style-loader",
           "css-loader",
           "less-loader", // 将less文件编译成为 css文件
         ],
@@ -49,8 +55,9 @@ module.exports = {
       {
         test: /\.s[ac]ss$/,
         use: [
+          MiniCssExtractPlugin.loader, // 提取css成单独文件
           // 将 JS 字符串生成为 style 节点
-          "style-loader",
+          // "style-loader",
           // 将 CSS 转化成 CommonJS 模块
           "css-loader",
           // 将 Sass 编译成 CSS
@@ -62,8 +69,9 @@ module.exports = {
       {
         test: /\.styl$/,
         use: [
+          MiniCssExtractPlugin.loader, // 提取css成单独文件
           // 将 JS 字符串生成为 style 节点
-          "style-loader",
+          // "style-loader",
           // 将 CSS 转化成 CommonJS 模块
           "css-loader",
           // 将 stylus 编译成 CSS
@@ -130,12 +138,17 @@ module.exports = {
     new HtmlWebpackPlugin({
       // 以 public/index.html 文件为模板创建新的 html 文件
       // 新的文件有两个特点： 1. 结构和原来一致， 2. 会自动引入打包的输出资源
-      template: path.resolve(__dirname, "public/index.html"),
+      template: path.resolve(__dirname, "../public/index.html"),
     }),
     // new ESLintPlugin({
     //   // 监测那些文件
     //   context: path.resolve(__dirname, 'src')
     // }),
+
+    // 配置完成, 将 style.loader 替换成为  MiniCssExtractPlugin.loader后，还需要在plugins中使用
+    new MiniCssExtractPlugin({
+      filename: 'static/css/main.css'
+    }), // 提取css成单独文件
   ],
 
   // 开发服务器： 不会输出资源， 在内存种编译打包
@@ -166,11 +179,14 @@ module.exports = {
   
 */
 
-
 /*
-  开发模式下运行项目
-  创建 config 文件，在config 文件下创建开发模式与生产模式下的 webpack 配置文件
-  执行 npx webpack serve --config ./config/webpack.dev.js 运行
-    --config 指定配置文件位置
-    在开发模式下只要修改路径位置，因为文件放在了config文件中
+  1. css 文件处理
+    在之前的处理中， css文件被打包到 js 文件中， 当加载js文件时，会创建一个style标签来生成样式
+    并且，在这种形势下加载css， 可能会导致闪屏的现象
+    所以， 需要处理成单独的 css 文件，通过 link标签加载性能更好
+
+    处理 ： 
+      1. 下载插件
+        npm i mini-css-extract-plugin -D
+
 */ 
