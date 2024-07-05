@@ -9,7 +9,8 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 // 将css 打包成为单独的css文件
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // css 文件压缩
-const cssMinimizerWebpackPlugin = require("css-minimizer-webpack-plugin")
+const cssMinimizerWebpackPlugin = require("css-minimizer-webpack-plugin");
+const { devtool } = require("./webpack.dev");
 
 // 因为处理css样式的loader大量使用重复代码，使用方法减少代码使用
 function getStyleLoader(pre) {
@@ -51,180 +52,185 @@ module.exports = {
   },
   module: {
     rules: [
-      // loader的配置
-      // 处理css 文件资源
       {
-        test: /\.css$/, // 检查文件类型 .css
-        // 使用什么loader去处理， 特别注意的是loader执行的顺序是从右到左，从下到上
+        // 每个文件只能被一个loader配置处理
+        oneOf: [
+          // loader的配置
+          // 处理css 文件资源
+          {
+            test: /\.css$/, // 检查文件类型 .css
+            // 使用什么loader去处理， 特别注意的是loader执行的顺序是从右到左，从下到上
 
-        // 使用loader只能使用一个loader
-        // loader: 'css-loader',
+            // 使用loader只能使用一个loader
+            // loader: 'css-loader',
 
-        // use 可以使用多个loader
-        // 代码重复
-        use: getStyleLoader(),
-        //[
-        // MiniCssExtractPlugin.loader, // 提取css成单独文件
-        // "style-loader", // 将js中的css通过创建style标签添加到 html 文件中（动态创建style标签添加到html中，让css文件生效）
-        // "css-loader", // 将css资源编译成为 commonjs 的模块到js中（将css打包到js中）
-        // {
-        //   loader: "postcss-loader",
-        //   options: {
-        //     postcssOptions: {
-        //       plugins: [
-        //         [
-        //           "postcss-preset-env",
-        //           {
-        //             // 其他选项
-        //           },
-        //         ],
-        //       ],
-        //     },
-        //   },
-        // },
-        //],
-      },
-
-      // 处理less 文件资源
-      {
-        test: /\.less$/,
-        use: getStyleLoader("less-loader"),
-        //   [
-        //   MiniCssExtractPlugin.loader, // 提取css成单独文件
-        //   // compiles Less to CSS
-        //   // "style-loader",
-        //   "css-loader",
-        //   {
-        //     loader: "postcss-loader", // 兼容性处理
-        //     options: {
-        //       postcssOptions: {
-        //         plugins: [
-        //           [
-        //             "postcss-preset-env",
-        //             {
-        //               // 其他选项
-        //             },
-        //           ],
-        //         ],
-        //       },
-        //     },
-        //   },
-        //   "less-loader", // 将less文件编译成为 css文件
-        // ],
-      },
-
-      // 处理 scss 资源
-      {
-        test: /\.s[ac]ss$/,
-        use: getStyleLoader("sass-loader"),
-        //   [
-        //   MiniCssExtractPlugin.loader, // 提取css成单独文件
-        //   // 将 JS 字符串生成为 style 节点
-        //   // "style-loader",
-        //   // 将 CSS 转化成 CommonJS 模块
-        //   "css-loader",
-        //   {
-        //     loader: "postcss-loader",
-        //     options: {
-        //       postcssOptions: {
-        //         plugins: [
-        //           [
-        //             "postcss-preset-env",
-        //             {
-        //               // 其他选项
-        //             },
-        //           ],
-        //         ],
-        //       },
-        //     },
-        //   },
-        //   // 将 Sass 编译成 CSS
-        //   "sass-loader",
-        // ],
-      },
-
-      // 处理stylus 资源
-      {
-        test: /\.styl$/,
-        use: getStyleLoader("stylus-loader"),
-        // [
-        //   MiniCssExtractPlugin.loader, // 提取css成单独文件
-        //   // 将 JS 字符串生成为 style 节点
-        //   // "style-loader",
-        //   // 将 CSS 转化成 CommonJS 模块
-        //   "css-loader",
-        //   {
-        //     loader: "postcss-loader",
-        //     options: {
-        //       postcssOptions: {
-        //         plugins: [
-        //           [
-        //             "postcss-preset-env",
-        //             {
-        //               // 其他选项
-        //             },
-        //           ],
-        //         ],
-        //       },
-        //     },
-        //   },
-        //   // 将 stylus 编译成 CSS
-        //   "stylus-loader",
-        // ],
-      },
-
-      // 配置资源文件目录
-      // 处理图片资源
-      {
-        test: /\.(png|jpe?g|gif|svg|webp|gif)$/,
-        type: "asset",
-        parser: {
-          dataUrlCondition: {
-            // 小于 10kb 的图片转 base64 文件格式
-            // 优点: 减少请求数量
-            // 缺点： 文件的体积会变大
-            maxSize: 10 * 1024, // 10kb
+            // use 可以使用多个loader
+            // 代码重复
+            use: getStyleLoader(),
+            //[
+            // MiniCssExtractPlugin.loader, // 提取css成单独文件
+            // "style-loader", // 将js中的css通过创建style标签添加到 html 文件中（动态创建style标签添加到html中，让css文件生效）
+            // "css-loader", // 将css资源编译成为 commonjs 的模块到js中（将css打包到js中）
+            // {
+            //   loader: "postcss-loader",
+            //   options: {
+            //     postcssOptions: {
+            //       plugins: [
+            //         [
+            //           "postcss-preset-env",
+            //           {
+            //             // 其他选项
+            //           },
+            //         ],
+            //       ],
+            //     },
+            //   },
+            // },
+            //],
           },
-        },
-        // 输出图片类型文件到自定目录
-        // hash:10 代表hash值只取10位
-        generator: {
-          filename: "static/images/[hash:10][ext][query]",
-        },
-      },
-      // 处理字体资源
-      {
-        test: /\.(woff2?|ttf)$/,
-        // asset/resource 表示只会原封不动的输出，不会转换成为 base64 文件格式
-        type: "asset/resource",
-        // 输出图片类型文件到自定目录
-        // hash:10 代表hash值只取10位
-        generator: {
-          filename: "static/font/[hash:10][ext][query]",
-        },
-      },
-      // 处理其他资源
-      {
-        test: /\.(map3|map4|avi)$/,
-        // asset/resource 表示只会原封不动的输出，不会转换成为 base64 文件格式
-        type: "asset/resource",
-        // 输出图片类型文件到自定目录
-        // hash:10 代表hash值只取10位
-        generator: {
-          filename: "static/media/[hash:10][ext][query]",
-        },
-      },
 
-      {
-        test: /\.?js$/,
-        exclude: /(node_modules)/, // 排除 node-model 文件不处理
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-            // plugins: ["@babel/plugin-proposal-object-rest-spread"],
+          // 处理less 文件资源
+          {
+            test: /\.less$/,
+            use: getStyleLoader("less-loader"),
+            //   [
+            //   MiniCssExtractPlugin.loader, // 提取css成单独文件
+            //   // compiles Less to CSS
+            //   // "style-loader",
+            //   "css-loader",
+            //   {
+            //     loader: "postcss-loader", // 兼容性处理
+            //     options: {
+            //       postcssOptions: {
+            //         plugins: [
+            //           [
+            //             "postcss-preset-env",
+            //             {
+            //               // 其他选项
+            //             },
+            //           ],
+            //         ],
+            //       },
+            //     },
+            //   },
+            //   "less-loader", // 将less文件编译成为 css文件
+            // ],
           },
-        },
+
+          // 处理 scss 资源
+          {
+            test: /\.s[ac]ss$/,
+            use: getStyleLoader("sass-loader"),
+            //   [
+            //   MiniCssExtractPlugin.loader, // 提取css成单独文件
+            //   // 将 JS 字符串生成为 style 节点
+            //   // "style-loader",
+            //   // 将 CSS 转化成 CommonJS 模块
+            //   "css-loader",
+            //   {
+            //     loader: "postcss-loader",
+            //     options: {
+            //       postcssOptions: {
+            //         plugins: [
+            //           [
+            //             "postcss-preset-env",
+            //             {
+            //               // 其他选项
+            //             },
+            //           ],
+            //         ],
+            //       },
+            //     },
+            //   },
+            //   // 将 Sass 编译成 CSS
+            //   "sass-loader",
+            // ],
+          },
+
+          // 处理stylus 资源
+          {
+            test: /\.styl$/,
+            use: getStyleLoader("stylus-loader"),
+            // [
+            //   MiniCssExtractPlugin.loader, // 提取css成单独文件
+            //   // 将 JS 字符串生成为 style 节点
+            //   // "style-loader",
+            //   // 将 CSS 转化成 CommonJS 模块
+            //   "css-loader",
+            //   {
+            //     loader: "postcss-loader",
+            //     options: {
+            //       postcssOptions: {
+            //         plugins: [
+            //           [
+            //             "postcss-preset-env",
+            //             {
+            //               // 其他选项
+            //             },
+            //           ],
+            //         ],
+            //       },
+            //     },
+            //   },
+            //   // 将 stylus 编译成 CSS
+            //   "stylus-loader",
+            // ],
+          },
+
+          // 配置资源文件目录
+          // 处理图片资源
+          {
+            test: /\.(png|jpe?g|gif|svg|webp|gif)$/,
+            type: "asset",
+            parser: {
+              dataUrlCondition: {
+                // 小于 10kb 的图片转 base64 文件格式
+                // 优点: 减少请求数量
+                // 缺点： 文件的体积会变大
+                maxSize: 10 * 1024, // 10kb
+              },
+            },
+            // 输出图片类型文件到自定目录
+            // hash:10 代表hash值只取10位
+            generator: {
+              filename: "static/images/[hash:10][ext][query]",
+            },
+          },
+          // 处理字体资源
+          {
+            test: /\.(woff2?|ttf)$/,
+            // asset/resource 表示只会原封不动的输出，不会转换成为 base64 文件格式
+            type: "asset/resource",
+            // 输出图片类型文件到自定目录
+            // hash:10 代表hash值只取10位
+            generator: {
+              filename: "static/font/[hash:10][ext][query]",
+            },
+          },
+          // 处理其他资源
+          {
+            test: /\.(map3|map4|avi)$/,
+            // asset/resource 表示只会原封不动的输出，不会转换成为 base64 文件格式
+            type: "asset/resource",
+            // 输出图片类型文件到自定目录
+            // hash:10 代表hash值只取10位
+            generator: {
+              filename: "static/media/[hash:10][ext][query]",
+            },
+          },
+
+          {
+            test: /\.?js$/,
+            exclude: /(node_modules)/, // 排除 node-model 文件不处理
+            use: {
+              loader: "babel-loader",
+              options: {
+                presets: ["@babel/preset-env"],
+                // plugins: ["@babel/plugin-proposal-object-rest-spread"],
+              },
+            },
+          },
+        ],
       },
     ],
   },
@@ -244,10 +250,11 @@ module.exports = {
     }), // 提取css成单独文件
 
     // css 文件压缩
-    new cssMinimizerWebpackPlugin()
+    new cssMinimizerWebpackPlugin(),
   ],
 
   mode: "production",
+  devtool: "source-map",
 };
 
 /*
@@ -291,4 +298,38 @@ module.exports = {
       npm install css-minimizer-webpack-plugin -D
 
     html文件以及js文件会自动压缩不需要额外的配置
+*/
+
+/*
+  高级开发
+    1. SourceMap（源代码映射）
+    SourceMap(源代码映射) 是一个用来生成源代码与构建后代码的映射文件方案
+    他会生成一个xxx.map文件， 里面包含源代码和构建后代码每一行每一列的映射关系。在构建后代码出错了，就会
+    通过xxx.map文件，从构建后代码出错位置找到映射后源代码出错位置，从而让浏览器提示源代码文件出错位置，
+    帮助我们更快的找到错误根源
+
+    在实际开发过程中，只需要关注两种模式
+      1. 开发模式中： cheap-source-map
+        优点： 打包编译速度快， 只包含行映射
+        缺点： 没有列映射
+      2. 生产模式中： source-map
+        优点：包含行/列映射
+        缺点：打包编译速度慢
+
+
+    2. 提升打包构建速度
+      HotModuleReplacement
+      css样式因为存在style-loader,所以可以实现热更新，不需要重新刷新页面，只会单独重新打包css文件
+      js 还是需要重新打包，可以通过设置去实现热更新替换功能
+      if(module.hot){
+        modeule.hot.accept('文件地址'， () => {
+          一旦这个模块发生变化就会调用这个函数
+          })
+      }
+      他只能一个监听一个模块，如果需要监听所有的模块，需要写所有的文件
+
+    3. oneOf
+
+    
+
 */

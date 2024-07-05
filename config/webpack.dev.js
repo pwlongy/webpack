@@ -147,7 +147,7 @@ module.exports = {
 
     // 配置完成, 将 style.loader 替换成为  MiniCssExtractPlugin.loader后，还需要在plugins中使用
     new MiniCssExtractPlugin({
-      filename: 'static/css/main.css'
+      filename: "static/css/main.css",
     }), // 提取css成单独文件
   ],
 
@@ -156,8 +156,10 @@ module.exports = {
     host: "localhost", // 启动服务器域名
     port: "3000", // 启动服务器端口
     // open: true, // 是否自动打开浏览器
+    hot: true, //热模块替换 开启HMR
   },
   mode: "development",
+  devtool: "cheap-module-source-map",
 };
 
 /*
