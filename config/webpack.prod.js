@@ -11,6 +11,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // css 文件压缩
 const cssMinimizerWebpackPlugin = require("css-minimizer-webpack-plugin");
 const { devtool } = require("./webpack.dev");
+const { cachedDataVersionTag } = require("v8");
 
 // 因为处理css样式的loader大量使用重复代码，使用方法减少代码使用
 function getStyleLoader(pre) {
@@ -225,8 +226,10 @@ module.exports = {
             use: {
               loader: "babel-loader",
               options: {
-                presets: ["@babel/preset-env"],
+                // presets: ["@babel/preset-env"],
                 // plugins: ["@babel/plugin-proposal-object-rest-spread"],
+                cacheDirectory: true,  // 开启babel缓存
+                cacheCompression: false, // 关闭缓存文件的压缩
               },
             },
           },
@@ -329,7 +332,17 @@ module.exports = {
       他只能一个监听一个模块，如果需要监听所有的模块，需要写所有的文件
 
     3. oneOf
+      将配置都放在oneOf数组中，一个文件只会处理一个配置
 
+    4. include/exclude
+      include 只处理包含 XXX 的文件
+      exclude 排除 xxx 文件
+
+    5. cache 缓存
+      每次打包时 js 文件都要经过Eslint检查和 Babel编译，速度比较慢
+      我们可以缓存之前的Eslint检查和Babel编译结果，这样打包时速度就会更快
+
+    6. 多进程
     
 
 */

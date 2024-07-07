@@ -5,6 +5,9 @@ const path = require("path");
 // 使用 Htmlwebpackplugin 插件自动引入js
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+
+// 因为
+
 module.exports = {
   // 入口
   entry: "./src/main.js", // 相对路径
