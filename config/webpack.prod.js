@@ -10,8 +10,20 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // css 文件压缩
 const cssMinimizerWebpackPlugin = require("css-minimizer-webpack-plugin");
-const { devtool } = require("./webpack.dev");
-const { cachedDataVersionTag } = require("v8");
+
+// 使用多线程
+// 应为文件中最多的还是为js文件，所以我们只需要用多线程去处理js文件就可以了
+const os = require("os");
+const threads = os.cpus().length  // 获取cpu核数
+
+// 压缩js webpack内置, 还是需要安装
+const terserWebpackPlugin = require('terser-webpack-plugin');
+
+// 进行图片资源的压缩处理 
+const ImageMinimzerPlugin = require("image-minimizer-webpack-plugin")
+
+
+
 
 // 因为处理css样式的loader大量使用重复代码，使用方法减少代码使用
 function getStyleLoader(pre) {
@@ -223,15 +235,25 @@ module.exports = {
           {
             test: /\.?js$/,
             exclude: /(node_modules)/, // 排除 node-model 文件不处理
-            use: {
-              loader: "babel-loader",
-              options: {
-                // presets: ["@babel/preset-env"],
-                // plugins: ["@babel/plugin-proposal-object-rest-spread"],
-                cacheDirectory: true,  // 开启babel缓存
-                cacheCompression: false, // 关闭缓存文件的压缩
+            use: [
+              {
+                loader: 'thread-loader',  // 开启多进程，对babel进行处理
+                options: {
+                  works: threads, // 进程数量
+
+                }
               },
-            },
+              {
+                loader: "babel-loader",
+                options: {
+                  // presets: ["@babel/preset-env"],
+                  // plugins: ["@babel/plugin-proposal-object-rest-spread"],
+                  cacheDirectory: true,  // 开启babel缓存
+                  cacheCompression: false, // 关闭缓存文件的压缩
+                  plugins: ["@babel/plugin-transform-runtime"]
+                },
+              },
+            ]
           },
         ],
       },
@@ -245,7 +267,10 @@ module.exports = {
     }),
     // new ESLintPlugin({
     //   // 监测那些文件
-    //   context: path.resolve(__dirname, 'src')
+    //   context: path.resolve(__dirname, 'src'),
+    //   cache: true, //开启缓存 
+    // exclude: "node_modules"
+    // threads, // 开启多进程和设置进程数
     // }),
 
     new MiniCssExtractPlugin({
@@ -253,8 +278,52 @@ module.exports = {
     }), // 提取css成单独文件
 
     // css 文件压缩
-    new cssMinimizerWebpackPlugin(),
+    // new cssMinimizerWebpackPlugin(),
+    // 压缩js
+    // new terserWebpackPlugin({
+    //   parallel: threads
+    // })
   ],
+  // 压缩文件配置
+  optimization: {
+    minimizer: [
+      // css 文件压缩
+      new cssMinimizerWebpackPlugin(),
+      // 压缩js, js压缩会自动处理，应为需要传配置，所以需要从新导入
+      new terserWebpackPlugin({
+        parallel: threads
+      }),
+      // 图片资源压缩
+      new ImageMinimzerPlugin({
+        minimizer:{
+          implementation: ImageMinimzerPlugin.imageminGenerate,
+          options: {
+            plugins: [
+              ['gifsicle', { interlaced: true }],
+              ['jpegtran', { progressive: true }],
+              ['optipng', { optimizationLevel: 5 }],
+              // Svgo configuration here https://github.com/svg/svgo#configuration
+              [
+                'svgo',
+                {
+                  plugins:[
+                    "preset-default",
+                    "prefixIds",
+                    {
+                      name: 'sortAttrs',
+                      params: {
+                        xmlnsOrder: "alphabetical"
+                      }
+                    }
+                  ]
+                },
+              ],
+            ],
+          }
+        }
+      })
+    ]
+  },
 
   mode: "production",
   devtool: "source-map",
@@ -343,6 +412,52 @@ module.exports = {
       我们可以缓存之前的Eslint检查和Babel编译结果，这样打包时速度就会更快
 
     6. 多进程
-    
+      多进程打包是什么： 多进程打包是开启电脑多个进程同时干一件事，速度更快
+        特别注意的是： 请仅在特别耗时的操作中使用，因为每个进程启动就大约需要600ms左右的开销
+      如何使用
+      1. 获取cpu的核数
+        const os = require("os") node 核心模块
+        const threads = os.cpus().length cpu 核数
+      2. 下载依赖包
+        npm install thread-loader -D
+
+*/
+
+/*
+  
+    减少代码体积
+      1. tree shaking
+      在开发的过程中，我们定义了一些工具函数库，或者引用第三方工具库或组件库
+      如果没有特殊处理的话我们打包时会引入整个库，但实际上我们可能只需要用上极小的一部分功能
+      这样将整个库打包进来，体积就大了
+
+      tree shaking是一个术语，通常用于描述移除javascript中没有使用的代码
+        特别需要注意的是：他依赖 ES Module（es 模块化）
+      webpack 默认情况下已经开启了此项功能不需要做其他配置
+
+      2. babel
+       babel 会为编译的每一个文件插入辅助代码，使代码体积变大
+       babel 对一些公共方法使用了非常小的辅助代码， 比如 _extend, 默认情况下会被添加到每一个需要他的文件中
+       可以将这些辅助代码作为一个独立的模块， 来避免重复引入
+       
+        可以通过使用 @babel/plugin-transform-runtime ： 禁用babel自动对每个文件的 runtime 注入， 
+        而是引入 @babel/plugin-transform-runtime 并且使所有辅助代码从这里引用
+
+        安装插件
+        npm install @babel/plugin-transform-runtime -D
+      
+        3. 图片压缩
+          在开发过程中，会引用比较多的图片，那么图片体积会比较大，将来请求速度会比较慢
+          我们可以对图片资源进行压缩处理，减少图片体积大小
+
+          如果项目中使用的图片是在线链接，那么就不需要，本地项目静态图片才需要进行压缩
+
+          1. 安装压缩图片插件
+          npm install image-minimizer-webapck-plugin imagemin -D 用于压缩图片资源
+          无损压缩
+          npm install imagemin-gifsicle imagemin-jpegtran imagemin-optipng imagemin-svgo -D
+          有损压缩
+          npm install imagemin-gifsicle imagemin-mozjpeg imagemin-pngquant imagemin-svgo -D
+
 
 */

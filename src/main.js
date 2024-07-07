@@ -5,6 +5,7 @@ import './css/reset.css'
 import './css/index.less'
 import "./css/index.scss"
 import './css/index.css'
+import './image/123.jpg'
 
 import './font/fonts/iconfont.css'
 
