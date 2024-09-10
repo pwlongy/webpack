@@ -52,15 +52,20 @@ function getStyleLoader(pre) {
 }
 
 module.exports = {
-  // 入口
-  entry: "./src/main.js", // 相对路径
+  // 单入口
+  // entry: "./src/main.js", // 相对路径
+  // 多入口文件
+  entry: {
+    app: './src/app.js',
+    main: './src/main.js'
+  },
   output: {
     // 输出路径
     // __dirname node.js的变量， 代表当前文件的文件夹目录
     // 开发模式没有输出，可以不写
     path: path.resolve(__dirname, "../dist"), // 使用绝对路径
     // 输出的文件名称
-    filename: "static/js/main.js",
+    filename: "static/js/[name].js",  // [name] 表示以文件自身名字去命名
     clean: true, // 每次打包都会清除上一次打包的内容
   },
   module: {
@@ -345,6 +350,25 @@ module.exports = {
       //     reuseExistingChunk: true
       //   }
       // }
+
+
+
+
+      
+      cacheGroups: {
+        // 组，那些模块需要打包到一个组
+        // defaultVendors: {
+        //   test: /[\\/]node_modules[\\/]/, // 需要打包到一起的模块
+        //   priority: -10, //权重（越大越高）
+        //   reuseExistingChunk: true, // 如果当前chunk 包含从主 bundle中拆分的模块，则它将被重用，而不是生成新的模块
+        // },
+        default: {
+          minSize: 0,
+          minChunks: 2,
+          priority: -20, 
+          reuseExistingChunk: true,
+        }
+      }
     }
   },
 
